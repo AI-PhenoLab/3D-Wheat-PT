@@ -69,9 +69,18 @@ class Point(Dict):
                 self.coord - self.coord.min(0)[0], self.grid_size, rounding_mode="trunc"
             ).int()
 
+        # Clamp grid_coord to prevent serialization depth > 16 error
+        # Maximum grid_coord value for depth=16 is 2^16 - 1 = 65535
+        max_grid_coord = (1 << 16) - 1  # 65535
+        if self.grid_coord.max() > max_grid_coord:
+            # Clamp grid_coord to maximum allowed value
+            self.grid_coord = torch.clamp(self.grid_coord, 0, max_grid_coord)
+        
         if depth is None:
             # Adaptive measure the depth of serialization cube (length = 2 ^ depth)
             depth = int(self.grid_coord.max() + 1).bit_length()
+        # Ensure depth does not exceed 16
+        depth = min(depth, 16)
         self["serialized_depth"] = depth
         # Maximum bit length for serialization code is 63 (int64)
         assert depth * 3 + len(self.offset).bit_length() <= 63

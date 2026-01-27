@@ -6,7 +6,10 @@ Please cite our work if the code is helpful to you.
 """
 
 import numpy as np
-import wandb
+try:
+    import wandb
+except ImportError:
+    wandb = None
 import torch
 import torch.distributed as dist
 import pointops
@@ -93,7 +96,7 @@ class ClsEvaluator(HookBase):
             self.trainer.writer.add_scalar("val/mIoU", m_iou, current_epoch)
             self.trainer.writer.add_scalar("val/mAcc", m_acc, current_epoch)
             self.trainer.writer.add_scalar("val/allAcc", all_acc, current_epoch)
-            if self.trainer.cfg.enable_wandb:
+            if self.trainer.cfg.enable_wandb and wandb is not None:
                 wandb.log(
                     {
                         "Epoch": current_epoch,
@@ -120,7 +123,7 @@ class SemSegEvaluator(HookBase):
         self.write_cls_iou = write_cls_iou
 
     def before_train(self):
-        if self.trainer.writer is not None and self.trainer.cfg.enable_wandb:
+        if self.trainer.writer is not None and self.trainer.cfg.enable_wandb and wandb is not None:
             wandb.define_metric("val/*", step_metric="Epoch")
 
     def after_epoch(self):
@@ -204,7 +207,7 @@ class SemSegEvaluator(HookBase):
             self.trainer.writer.add_scalar("val/mIoU", m_iou, current_epoch)
             self.trainer.writer.add_scalar("val/mAcc", m_acc, current_epoch)
             self.trainer.writer.add_scalar("val/allAcc", all_acc, current_epoch)
-            if self.trainer.cfg.enable_wandb:
+            if self.trainer.cfg.enable_wandb and wandb is not None:
                 wandb.log(
                     {
                         "Epoch": current_epoch,

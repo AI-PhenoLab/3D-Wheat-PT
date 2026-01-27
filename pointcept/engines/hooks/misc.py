@@ -11,7 +11,10 @@ import os
 import shutil
 import time
 import gc
-import wandb
+try:
+    import wandb
+except ImportError:
+    wandb = None
 import torch
 import torch.utils.data
 from collections import OrderedDict
@@ -86,7 +89,7 @@ class InformationWriter(HookBase):
     def before_train(self):
         self.trainer.comm_info["iter_info"] = ""
         self.curr_iter = self.trainer.start_epoch * len(self.trainer.train_loader)
-        if self.trainer.writer is not None and self.trainer.cfg.enable_wandb:
+        if self.trainer.writer is not None and self.trainer.cfg.enable_wandb and wandb is not None:
             wandb.define_metric("params/*", step_metric="Iter")
             wandb.define_metric("train_batch/*", step_metric="Iter")
             wandb.define_metric("train/*", step_metric="Epoch")
@@ -124,8 +127,7 @@ class InformationWriter(HookBase):
                     self.trainer.storage.history(key).val,
                     self.curr_iter,
                 )
-            if self.trainer.cfg.enable_wandb:
-
+            if self.trainer.cfg.enable_wandb and wandb is not None:
                 wandb.log(
                     {"Iter": self.curr_iter, "params/lr": lr}, step=self.curr_iter
                 )
@@ -153,8 +155,7 @@ class InformationWriter(HookBase):
                     self.trainer.epoch + 1,
                 )
 
-            if self.trainer.cfg.enable_wandb:
-
+            if self.trainer.cfg.enable_wandb and wandb is not None:
                 for key in self.model_output_keys:
                     wandb.log(
                         {

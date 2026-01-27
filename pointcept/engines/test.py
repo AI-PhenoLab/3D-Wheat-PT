@@ -104,7 +104,7 @@ class TesterBase:
             test_dataset,
             batch_size=self.cfg.batch_size_test_per_gpu,
             shuffle=False,
-            num_workers=self.cfg.batch_size_test_per_gpu,
+            num_workers=self.cfg.num_worker_per_gpu,  # Fixed: use num_worker_per_gpu instead of batch_size_test_per_gpu
             pin_memory=True,
             sampler=test_sampler,
             collate_fn=self.__class__.collate_fn,
@@ -167,11 +167,21 @@ class SemSegTester(TesterBase):
         record = {}
         # fragment inference
         for idx, data_dict in enumerate(self.test_loader):
+
+
             start = time.time()
             data_dict = data_dict[0]  # current assume batch size is 1
             fragment_list = data_dict.pop("fragment_list")
             segment = data_dict.pop("segment")
             data_name = data_dict.pop("name")
+            logger.info(
+                "Test: {}/{}-{data_name}".format(
+                    idx + 1,
+                    len(self.test_loader),
+                    data_name=data_name,
+
+                )
+            )
             pred_save_path = os.path.join(save_path, "{}_pred.npy".format(data_name))
             if os.path.isfile(pred_save_path):
                 logger.info(
@@ -204,15 +214,15 @@ class SemSegTester(TesterBase):
                             pred[idx_part[bs:be], :] += pred_part[bs:be]
                             bs = be
 
-                    logger.info(
-                        "Test: {}/{}-{data_name}, Batch: {batch_idx}/{batch_num}".format(
-                            idx + 1,
-                            len(self.test_loader),
-                            data_name=data_name,
-                            batch_idx=i,
-                            batch_num=len(fragment_list),
-                        )
-                    )
+                # logger.info(
+                #     "Test: {}/{}-{data_name}, Batch: {batch_idx}/{batch_num}".format(
+                #         idx + 1,
+                #         len(self.test_loader),
+                #         data_name=data_name,
+                #         batch_idx=i,
+                #         batch_num=len(fragment_list),
+                #     )
+                # )
                 if self.cfg.data.test.type == "ScanNetPPDataset":
                     pred = pred.topk(3, dim=1)[1].data.cpu().numpy()
                 else:

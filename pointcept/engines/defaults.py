@@ -11,6 +11,7 @@ import os
 import sys
 import argparse
 import multiprocessing as mp
+import torch
 from torch.nn.parallel import DistributedDataParallel
 
 
@@ -131,6 +132,11 @@ def default_config_parser(file_path, options):
 def default_setup(cfg):
     # scalar by world size
     world_size = comm.get_world_size()
+    
+    # Set CUDA device for single GPU training (non-distributed)
+    if world_size == 1 and torch.cuda.is_available():
+        torch.cuda.set_device(0)
+    
     cfg.num_worker = cfg.num_worker if cfg.num_worker is not None else mp.cpu_count()
     cfg.num_worker_per_gpu = cfg.num_worker // world_size
     assert cfg.batch_size % world_size == 0

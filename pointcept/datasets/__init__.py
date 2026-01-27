@@ -20,5 +20,8 @@ from .waymo import WaymoDataset
 from .modelnet import ModelNetDataset
 from .shapenet_part import ShapeNetPartDataset
 
+# custom datasets
+from .faro import FARODataset
+
 # dataloader
 from .dataloader import MultiDatasetDataloader

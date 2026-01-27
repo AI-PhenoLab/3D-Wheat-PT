@@ -25,6 +25,8 @@ from pointcept.models.utils.misc import offset2bincount
 from pointcept.models.utils.structure import Point
 from pointcept.models.modules import PointModule, PointSequential
 
+from fcm import FCM
+from CSAM import CSAM
 
 class RPE(torch.nn.Module):
     def __init__(self, patch_size, num_heads):
@@ -578,7 +580,9 @@ class PointTransformerV3(PointModule):
                 adaptive=pdnorm_adaptive,
             )
         else:
-            bn_layer = partial(nn.BatchNorm1d, eps=1e-3, momentum=0.01)
+            # Use track_running_stats=True to handle edge cases with small batch sizes
+            # Note: BatchNorm still requires batch_size >= 2 during training
+            bn_layer = partial(nn.BatchNorm1d, eps=1e-3, momentum=0.01, track_running_stats=True)
         if pdnorm_ln:
             ln_layer = partial(
                 PDNorm,
@@ -700,10 +704,11 @@ class PointTransformerV3(PointModule):
         point = Point(data_dict)
         point.serialization(order=self.order, shuffle_orders=self.shuffle_orders)
         point.sparsify()
-
+        # point = FCM(dim=self.in_channels[-1], dim_out=self.in_channels[-1])
         point = self.embedding(point)
         point = self.enc(point)
         if not self.enc_mode:
+            # point = CSAM(4, num_channels=self.in_channels[-1])
             point = self.dec(point)
         # else:
         #     point.feat = torch_scatter.segment_csr(
