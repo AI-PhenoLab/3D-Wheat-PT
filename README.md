@@ -51,7 +51,7 @@ python inference_and_visualize_faro.py  --config-file  ./configs\faro\semseg-pt-
 ```
 
 ## Peroration
-We mainly added fcm.py and CSAM.py to pointcept\models\point_transformer_v3, and modified point_transformer_v3m1_base.py.The above represents merely the first version of the software, and suggestions will be gathered and sorted out in the future for the improvement of the software.
+The above represents merely the first version of the software, and suggestions will be gathered and sorted out in the future for the improvement of the software.
 
 
 # AI-PheneLab
