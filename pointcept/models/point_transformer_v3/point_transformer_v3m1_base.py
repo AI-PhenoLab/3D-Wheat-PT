@@ -704,11 +704,11 @@ class PointTransformerV3(PointModule):
         point = Point(data_dict)
         point.serialization(order=self.order, shuffle_orders=self.shuffle_orders)
         point.sparsify()
-        # point = FCM(dim=self.in_channels[-1], dim_out=self.in_channels[-1])
+        # point = CSAM(4, num_channels=self.in_channels[-1])
         point = self.embedding(point)
         point = self.enc(point)
         if not self.enc_mode:
-            # point = CSAM(4, num_channels=self.in_channels[-1])
+            # point = FCM(dim=self.in_channels[-1], dim_out=self.in_channels[-1])
             point = self.dec(point)
         # else:
         #     point.feat = torch_scatter.segment_csr(
